@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         MVP Docs & Learn Champion Program
-// @version      1.1
+// @version      1.2
 // @description  Add WT.mc_id=DT-MVP-4015686 to the matched urls
 // @license      MIT
 // @homepage     https://blog.miniasp.com/
@@ -24,9 +24,12 @@
 // @match        *://www.azure.cn/*
 // @match        *://msdn.microsoft.com/*
 // @match        *://blogs.msdn.microsoft.com/*
+// @match        *://blogs.microsoft.com/*
 // @match        *://blogs.technet.microsoft.com/*
 // @match        *://microsoft.com/handsonlabs/*
 // @match        *://blogs.windows.com/*
+// @match        *://dotnet.microsoft.com/*
+// @match        *://info.microsoft.com/*
 // @run-at       document-start
 // ==/UserScript==
 
@@ -37,38 +40,31 @@
     .toString();
 
     if (s && location.href !== s) {
-        location.href = s;
+        //location.href = s;
+        history.pushState('', document.title, s)
     }
 
     function MVPDocsLearnChampionProgram(url) {
 
         return {
             add(name, value) {
-                var [path, ...other] = url.split('?');
-                other = other.join('?');
+                var query,
+                    // https://developer.mozilla.org/en-US/docs/Web/API/URL
+                    currURL = new URL(url),
+                    // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
+                    searchParams = new URLSearchParams(currURL.search),
+                    newURLSearchParams = new URLSearchParams();
 
-                var [query, ...hash] = other ? other.split('#') : [query, ''];
-                hash = hash.join('#');
-
-                let new_query = [];
-                for (let param of (query ? query : '').split('&')) {
-                    let [key, val] = param.split('=', 2);
-                    if (key !== name) {
-                        new_query.push(param);
+                for (const [key, val] of searchParams.entries()) {
+                    if (key.toLowerCase() == name.toLowerCase()) {
+                    } else {
+                        newURLSearchParams.set(key, val);
                     }
                 }
 
-                if (query) {
-                    new_query.push(name + '=' + value);
-                    query = new_query.join('&');
-                } else {
-                    query = name + '=' + value;
-                }
+                newURLSearchParams.set(name, value);
 
-                query = query ? query = '?' + query : '';
-                hash = hash ? hash = '#' + hash : '';
-
-                return MVPDocsLearnChampionProgram(path + query + hash);
+                return MVPDocsLearnChampionProgram(`${currURL.protocol}//${currURL.host}${currURL.pathname}?${newURLSearchParams.toString()}${currURL.hash}`);
             },
             toString() {
                 return url;
