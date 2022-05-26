@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         MVP Docs & Learn Champion Program
-// @version      1.2
+// @version      1.3
 // @description  Add WT.mc_id=DT-MVP-4015686 to the matched urls
 // @license      MIT
 // @homepage     https://blog.miniasp.com/
@@ -35,36 +35,25 @@
 
 (function() {
 
-    var s = MVPDocsLearnChampionProgram(location.href)
-    .add('WT.mc_id', 'DT-MVP-4015686')
-    .toString();
+    var s = MVPDocsLearnChampionProgram(location.href).add('WT.mc_id', 'DT-MVP-4015686').toString();
 
     if (s && location.href !== s) {
-        //location.href = s;
-        history.pushState('', document.title, s)
+        history.pushState({}, '', s)
     }
 
     function MVPDocsLearnChampionProgram(url) {
-
+        const parsedUrl = new URL(url);
         return {
             add(name, value) {
-                var query,
-                    // https://developer.mozilla.org/en-US/docs/Web/API/URL
-                    currURL = new URL(url),
-                    // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
-                    searchParams = new URLSearchParams(currURL.search),
-                    newURLSearchParams = new URLSearchParams();
-
-                for (const [key, val] of searchParams.entries()) {
+                // https://developer.mozilla.org/en-US/docs/Web/API/URL
+                // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
+                for (const [key, val] of parsedUrl.searchParams.entries()) {
                     if (key.toLowerCase() == name.toLowerCase()) {
-                    } else {
-                        newURLSearchParams.set(key, val);
+                        parsedUrl.searchParams.delete(key);
                     }
                 }
-
-                newURLSearchParams.set(name, value);
-
-                return MVPDocsLearnChampionProgram(`${currURL.protocol}//${currURL.host}${currURL.pathname}?${newURLSearchParams.toString()}${currURL.hash}`);
+                parsedUrl.searchParams.set(name, value);
+                return MVPDocsLearnChampionProgram(parsedUrl.toString());
             },
             toString() {
                 return url;
